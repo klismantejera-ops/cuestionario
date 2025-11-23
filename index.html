@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario de Hardware y Redes de Cómputo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 10px;
+        }
+        #start-screen {
+            text-align: center;
+        }
+        input[type="text"] {
+            padding: 8px;
+            margin: 10px;
+            width: 80%;
+            max-width: 300px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+        }
+        button:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+        .question {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: red;
+            font-weight: bold;
+        }
+        #results div {
+            margin-bottom: 15px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            input[type="text"] {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="start-screen">
+        <label for="name">Nombre del estudiante:</label><br>
+        <input type="text" id="name" oninput="checkName()"><br>
+        <button id="start-btn" disabled onclick="startQuiz()">Iniciar Cuestionario</button>
+    </div>
+    <div id="quiz" style="display: none;"></div>
+    <div id="results" style="display: none;"></div>
+
+    <script>
+        const questionsBank = [
+            // Hardware questions (selected ~30 from extracted)
+            {
+                question: "Any physical components of a computer system that we can see and touch is",
+                options: ["Software", "Peripheral device", "hardware", "CPU"],
+                correct: 2
+            },
+            {
+                question: "The system unit that contains the most vital part of the personal computer is called",
+                options: ["CPU", "BIOS chip", "Motherboard", "Monitor"],
+                correct: 2
+            },
+            {
+                question: "A motherboard consists of",
+                options: ["CPU", "RAM and BIOS chip", "Expansion slots", "Heat sink/fan", "All of the above"],
+                correct: 4
+            },
+            {
+                question: "Which of the following is considered as the brain of the computer?",
+                options: ["Motherboard", "RAM", "CPU", "BIOS chip"],
+                correct: 2
+            },
+            {
+                question: "Which of the following is primarily responsible for converting input (data) into meaningful output (information)?",
+                options: ["RAM", "CPU", "Storage device", "Input and Output device"],
+                correct: 1
+            },
+            {
+                question: "Central Processing Unit in a computer consists of which major components?",
+                options: ["Arithmetic logic unit (ALU) and Control Unit", "Control Unit (CU)", "Registers", "ALU, Control Unit, and Registers"],
+                correct: 3
+            },
+            {
+                question: "Which of the following component of CPU performs arithmetic operations such as addition, subtraction, division, and multiplication and logic operations such as AND, OR, and NOT?",
+                options: ["CU", "ALU", "Both a and b", "Register"],
+                correct: 1
+            },
+            {
+                question: "Which of the following component of CPU controls input/output devices, generate control signals to the other components of the computer such as read and write signals, and performs the execution of instruction?",
+                options: ["ALU", "Accumulator", "Control Unit", "Both a and c"],
+                correct: 2
+            },
+            {
+                question: "Which among the following is the fastest memory in a computer that holds information?",
+                options: ["Register", "Cache", "Main memory", "RAM"],
+                correct: 0
+            },
+            {
+                question: "Which of the following is not hardware?",
+                options: ["Processor chip", "Printer", "Mouse", "Java"],
+                correct: 3
+            },
+            {
+                question: "Which of the following are the predominant manufacturers for desktop and laptop processors?",
+                options: ["Intel", "AMD (Advanced Micro Devices)", "Motorola", "Both a and b"],
+                correct: 3
+            },
+            {
+                question: "Which of the following is temporary storage used to hold data that is used for arithmetic and logical operations and storing its results?",
+                options: ["ALU", "PC (Program counter)", "Accumulator", "IR (Instruction Register)"],
+                correct: 2
+            },
+            {
+                question: "Which of the following is a permanent storage location within the CPU used to hold a binary value temporarily for manipulation, and/or for simple calculations?",
+                options: ["Main memory", "Secondary memory", "Register", "Both a and b"],
+                correct: 2
+            },
+            {
+                question: "Data moves in and out of the CPU through embedded wires called",
+                options: ["Bus", "Electronic wires", "Lines", "Cables"],
+                correct: 0
+            },
+            {
+                question: "The most common buses inside the microcomputer are",
+                options: ["Address bus", "Address bus and Data bus", "Address bus and Control bus", "Address bus, Data bus, and Control bus"],
+                correct: 3
+            },
+            {
+                question: "Which bus is used to carry data to and from the memory?",
+                options: ["Address bus", "Data bus", "Control bus", "None of these"],
+                correct: 1
+            },
+            {
+                question: "Which register holds the address of the current instruction being executed?",
+                options: ["Instruction register", "Memory data register (MDR)", "Stack register", "Program counter"],
+                correct: 3
+            },
+            {
+                question: "Which register holds the actual instruction being executed currently by the computer?",
+                options: ["Memory address register (MIR)", "Instruction register (IR)", "Memory data register (MDR)", "Program counter register"],
+                correct: 1
+            },
+            {
+                question: "Which register holds the address of a memory location?",
+                options: ["Memory data register", "Memory address register", "Status register", "Stack address"],
+                correct: 1
+            },
+            {
+                question: "Which register shows the results of arithmetic and logical operations such as carry, overflow, negative?",
+                options: ["Stack register", "Status register", "Memory data register", "Memory buffer"],
+                correct: 1
+            },
+            {
+                question: "Which of the following register holds a data value that is being stored to or retrieved from the memory location?",
+                options: ["PSW", "Main memory", "Memory data register", "Cache register"],
+                correct: 2
+            },
+            {
+                question: "A device that allows entering data and instruction into a computer system is called",
+                options: ["interaction", "terminal", "communication", "input"],
+                correct: 3
+            },
+            {
+                question: "Computer gets the input with the help of",
+                options: ["mouse and keyboard", "joystick", "printer", "both a and b"],
+                correct: 3
+            },
+            {
+                question: "Which of the following are not input devices?",
+                options: ["Keyboard, trackball, light pen", "Barcode reader, OMR, OCR, MICR", "Biometric sensor, scanner, Mic", "Plotter, projector, headphones"],
+                correct: 3
+            },
+            {
+                question: "Which device is mostly used to enter data or information in a computer system?",
+                options: ["Touch screen", "mouse", "light pen", "keyboard"],
+                correct: 3
+            },
+            {
+                question: "Which of the following are examples of pointing devices?",
+                options: ["Mouse, trackball", "joystick, light pen", "touch screen", "All"],
+                correct: 3
+            },
+            {
+                question: "Which of the following is not a type of mouse?",
+                options: ["Wireless mouse", "Optical mouse", "Mechanical mouse", "Electromechanical mouse"],
+                correct: 3
+            },
+            {
+                question: "Which of the keys are also known as modifier keys?",
+                options: ["Shift", "Ctrl", "Alt", "All the above"],
+                correct: 3
+            },
+            {
+                question: "Which keys are also known as toggle keys?",
+                options: ["Caps lock, Num lock", "Control key, Enter key", "Shift, Esc", "Both a and b"],
+                correct: 0
+            },
+            {
+                question: "Which key is used to indent a paragraph?",
+                options: ["Spacebar", "Tab", "Shift", "None"],
+                correct: 1
+            },
+            {
+                question: "Which key is used to open the Start menu?",
+                options: ["Windows", "Alt", "Ctrl + Alt", "None of these"],
+                correct: 0
+            },
+
+            // Networks questions (selected ~30 from extracted)
+            {
+                question: "What is a computer network?",
+                options: ["A device used to display information on a computer screen", "A collection of interconnected computers and devices that can communicate and share resources", "A type of software used to create documents and presentations", "The physical casing that protects a computer’s internal components"],
+                correct: 1
+            },
+            {
+                question: "What is internet?",
+                options: ["A network of interconnected local area networks", "A collection of unrelated computers", "Interconnection of wide area networks", "A single network"],
+                correct: 2
+            },
+            {
+                question: "Which of the following is an example of Bluetooth?",
+                options: ["wide area network", "virtual private network", "local area network", "personal area network"],
+                correct: 3
+            },
+            {
+                question: "Which of the following computer networks is built on the top of another network?",
+                options: ["overlay network", "prime network", "prior network", "chief network"],
+                correct: 0
+            },
+            {
+                question: "What is the full form of OSI?",
+                options: ["optical service implementation", "open service Internet", "open system interconnection", "operating system interface"],
+                correct: 2
+            },
+            {
+                question: "When a collection of various computers appears as a single coherent system to its clients, what is this called?",
+                options: ["mail system", "networking system", "computer network", "distributed system"],
+                correct: 3
+            },
+            {
+                question: "How many layers are there in the ISO OSI reference model?",
+                options: ["7", "5", "4", "6"],
+                correct: 0
+            },
+            {
+                question: "What are nodes in a computer network?",
+                options: ["the computer that routes the data", "the computer that terminates the data", "the computer that originates the data", "all of the mentioned"],
+                correct: 3
+            },
+            {
+                question: "Which one of the following is not a function of network layer?",
+                options: ["congestion control", "error control", "routing", "inter-networking"],
+                correct: 1
+            },
+            {
+                question: "How is a single channel shared by multiple signals in a computer network?",
+                options: ["multiplexing", "phase modulation", "analog modulation", "digital modulation"],
+                correct: 0
+            },
+            {
+                question: "Which of the following devices forwards packets between networks by processing the routing information included in the packet?",
+                options: ["firewall", "bridge", "hub", "router"],
+                correct: 3
+            },
+            {
+                question: "What is the term for an endpoint of an inter-process communication flow across a computer network?",
+                options: ["port", "machine", "socket", "pipe"],
+                correct: 2
+            },
+            {
+                question: "How do two devices become part of a network?",
+                options: ["PIDs of the processes running of different devices are same", "a process in one device is able to exchange information with a process in another device", "a process is active and another is inactive", "a process is running on both devices"],
+                correct: 1
+            },
+            {
+                question: "Which layer does the data link layer take packets from and encapsulate them into frames for transmission?",
+                options: ["transport layer", "application layer", "network layer", "physical layer"],
+                correct: 2
+            },
+            {
+                question: "Which of this is not a network edge device?",
+                options: ["Switch", "PC", "Smartphones", "Servers"],
+                correct: 0
+            },
+            {
+                question: "Which type of network shares the communication channel among all the machines?",
+                options: ["anycast network", "multicast network", "unicast network", "broadcast network"],
+                correct: 3
+            },
+            {
+                question: "Which topology requires a multipoint connection?",
+                options: ["Ring", "Bus", "Star", "Mesh"],
+                correct: 1
+            },
+            {
+                question: "Which of the following maintains the Domain Name System?",
+                options: ["a single server", "a single computer", "distributed database system", "none of the mentioned"],
+                correct: 2
+            },
+            {
+                question: "When discussing IDS/IPS, what is a signature?",
+                options: ["It refers to “normal,” baseline network behavior", "It is used to authorize the users on a network", "An electronic signature used to authenticate the identity of a user on the network", "Attack-definition file"],
+                correct: 3
+            },
+            {
+                question: "Which of the following are Gigabit Ethernets?",
+                options: ["1000 BASE-LX", "1000 BASE-CX", "1000 BASE-SX", "All of the mentioned"],
+                correct: 3
+            },
+            {
+                question: "Which of the following networks extends a private network across public networks?",
+                options: ["virtual private network", "local area network", "storage area network", "enterprise private network"],
+                correct: 0
+            },
+            {
+                question: "Which layer is responsible for process to process delivery in a general network model?",
+                options: ["session layer", "data link layer", "transport layer", "network layer"],
+                correct: 2
+            },
+            {
+                question: "What does each packet contain in a virtual circuit network?",
+                options: ["only source address", "only destination address", "full source and destination address", "a short VC number"],
+                correct: 3
+            },
+            {
+                question: "What is the term for the data communication system within a building or campus?",
+                options: ["MAN", "LAN", "PAN", "WAN"],
+                correct: 1
+            },
+            {
+                question: "What was the name of the first network?",
+                options: ["ASAPNET", "ARPANET", "CNNET", "NSFNET"],
+                correct: 1
+            },
+            {
+                question: "Which of the following is the network layer protocol for the internet?",
+                options: ["hypertext transfer protocol", "file transfer protocol", "ethernet", "internet protocol"],
+                correct: 3
+            },
+            {
+                question: "Which network topology requires a central controller or hub?",
+                options: ["Ring", "Bus", "Star", "Mesh"],
+                correct: 2
+            },
+            {
+                question: "Computer Network is",
+                options: ["Collection of hardware components and computers", "Interconnected by communication channels", "Sharing of resources and information", "All of the Above"],
+                correct: 3
+            },
+            {
+                question: "What is a Firewall in Computer Network?",
+                options: ["The physical boundary of Network", "An operating System of Computer Network", "A system designed to prevent unauthorized access", "A web browsing Software"],
+                correct: 2
+            },
+            {
+                question: "How many layers does OSI Reference Model has?",
+                options: ["4", "5", "6", "7"],
+                correct: 3
+            }
+        ];
+
+        function checkName() {
+            const nameInput = document.getElementById('name');
+            const startBtn = document.getElementById('start-btn');
+            startBtn.disabled = nameInput.value.trim() === '';
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startQuiz() {
+            const name = document.getElementById('name').value;
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+
+            // Shuffle and select 50 questions
+            let questions = shuffle([...questionsBank]).slice(0, 50);
+
+            let quizHTML = '';
+            questions.forEach((q, index) => {
+                quizHTML += `
+                    <div class="question">
+                        <h3>Pregunta ${index + 1}: ${q.question}</h3>
+                        ${q.options.map((opt, optIndex) => `
+                            <label>
+                                <input type="radio" name="q${index}" value="${optIndex}">
+                                ${opt}
+                            </label><br>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            quizHTML += '<button onclick="submitQuiz(\'' + name + '\', ' + JSON.stringify(questions) + ')">Enviar</button>';
+            document.getElementById('quiz').innerHTML = quizHTML;
+        }
+
+        function submitQuiz(name, questions) {
+            let score = 0;
+            let resultsHTML = `<h2>Resultados para ${name}</h2>`;
+            questions.forEach((q, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                const userAnswer = selected ? parseInt(selected.value) : -1;
+                const isCorrect = userAnswer === q.correct;
+                if (isCorrect) score++;
+                resultsHTML += `
+                    <div class="${isCorrect ? 'correct' : 'incorrect'}">
+                        Pregunta ${index + 1}: ${q.question}<br>
+                        Tu respuesta: ${userAnswer !== -1 ? q.options[userAnswer] : 'No respondida'}<br>
+                        Respuesta correcta: ${q.options[q.correct]}
+                    </div>
+                `;
+            });
+            resultsHTML += `<h3>Puntuación: ${score}/50</h3>`;
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('results').innerHTML = resultsHTML;
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
